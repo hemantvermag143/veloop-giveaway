@@ -9,6 +9,32 @@ A premium full-stack giveaway and rewards platform built with React, Vite, Boots
     ├── backend/               # Express + MongoDB API
     └── README.md
 
+## Project Concept
+
+VELOOP Rewards is designed around a transparent giveaway journey:
+
+```text
+Discover Giveaway
+      ↓
+Review Prize & Entry Fee
+      ↓
+Check Eligibility & Wallet
+      ↓
+Confirm Participation
+      ↓
+Entry Recorded + Transaction Created
+      ↓
+Giveaway Ends
+      ↓
+Winner Selection
+      ↓
+Winner / Non-Winner Experience
+      ↓
+Prize Claim
+```
+
+The backend is the source of truth for giveaway status, prize configuration, entry fees, wallet balances, participation, winners, transactions, claims, eligibility, fraud signals, and audit records.
+
 ## Core Features
 
 - Active, upcoming, and completed giveaways
@@ -150,6 +176,115 @@ Supported transaction types:
 
 Idempotency keys protect retryable participation requests from duplicate processing. Stale processing keys are recoverable after the configured timeout.
 
+## User States
+
+The frontend supports the main giveaway states:
+
+- Visitor
+- Logged-in user not participating
+- Participant
+- Winner
+- Non-winner
+- Giveaway ended
+- Upcoming giveaway
+
+UI actions and messaging change according to authentication, participation, giveaway status, and winner status.
+
+## Winner System
+
+Winner selection is backend-controlled and is triggered after an eligible giveaway ends.
+
+Active giveaways do not falsely display finalized winners. Completed giveaways expose winner history while public user identifiers remain masked, for example:
+
+```text
+VE****42
+```
+
+Previous winners remain associated with their original giveaway so historical records are preserved.
+
+## Prize Claim System
+
+Only an authenticated user whose backend-controlled identity matches a winner can access the claim flow.
+
+Before submission, the user sees the prize, giveaway, winner status, claim deadline, and required information.
+
+### Physical Prize
+
+Physical prizes collect:
+
+- Full Name
+- Phone Number
+- Complete Address
+- City
+- State
+- PIN Code
+
+### Amazon Gift Card
+
+Amazon gift-card winners provide an email address for delivery rather than a physical shipping address.
+
+Supported claim states:
+
+```text
+NOT_SUBMITTED
+SUBMITTED
+PROCESSING
+COMPLETED
+EXPIRED
+```
+
+## Responsive Design
+
+The interface is designed for mobile, tablet, desktop, and large desktop layouts.
+
+Validated responsive targets include:
+
+- 320px mobile
+- 768px tablet
+- 1024px desktop
+- 1440px+ large desktop
+
+Responsive behavior includes stacked mobile hero layouts, touch-friendly controls, responsive statistics, mobile-safe prize cards, readable winner sections, compact wallet display, responsive claim forms, and a responsive footer.
+
+## Animation & Interaction
+
+Motion is intentionally restrained and reward-focused.
+
+Implemented interactions include:
+
+- Custom giveaway loading animation
+- Countdown updates
+- Smooth winner slider transitions
+- Auto-rotating winner announcements
+- Pause-on-hover behavior
+- Join success feedback
+
+The visual direction avoids excessive flashing, casino-style effects, and unnecessary heavy animation.
+
+## Demo Data & Development Notes
+
+The repository includes structured giveaway seed data for local development and testing. Giveaway configuration such as prize, currency, entry amount, status, and winner count is stored in the backend data model rather than being scattered across frontend components.
+
+Demo data is intended for development and evaluation only and must not be presented as real VELOOP production statistics.
+
+## Screenshots & Demo
+
+Recommended final project evidence includes:
+
+- Desktop giveaway home
+- Tablet giveaway home
+- Mobile giveaway home
+- Active giveaway details
+- Upcoming giveaway details
+- Ended giveaway and winner results
+- Previous winners
+- Winner claim modal
+- Amazon gift-card claim experience
+- Non-winner experience
+- Transaction history and wallet balances
+
+Live demo URL can be added here after deployment.
+
 ## Security
 
 - JWT authentication
@@ -188,3 +323,15 @@ Before production deployment:
 5. Use a strong production JWT secret.
 6. Configure production logging and monitoring.
 7. Deploy frontend and backend using the selected hosting architecture.
+## GitHub
+
+Repository:
+https://github.com/hemantvermag143/veloop-giveaway
+
+## Future Improvements
+
+Potential production extensions include advanced fraud scoring, expanded admin analytics, automated prize fulfillment, production monitoring, CI/CD, and additional automated integration and end-to-end tests.
+
+## Repository Status
+
+The repository contains the implemented VELOOP Rewards giveaway frontend, backend, database models, API documentation, seed data, wallet and transaction flow, winner system, prize claim system, security controls, and responsive UI.
