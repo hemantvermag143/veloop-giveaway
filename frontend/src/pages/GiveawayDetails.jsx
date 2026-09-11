@@ -140,8 +140,8 @@ function GiveawayDetails() {
           setWinner({
             ...winnerData,
             giveawayName: giveaway.title,
-            prizeName: winnerPrize?.name || prize?.name,
-            prizeType: winnerPrize?.type || prize?.type,
+            prizeName: winnerPrize?.name,
+            prizeType: winnerPrize?.type,
             claimDeadline: giveaway.endAt
               ? new Date(
                   new Date(giveaway.endAt).getTime() +
@@ -152,7 +152,7 @@ function GiveawayDetails() {
                   year: "numeric",
                 })
               : "7 days after giveaway ends",
-            prize: winnerPrize?.name || prize?.name,
+            prize: winnerPrize?.name,
             winnerStatus: winnerData.status,
           });
         } else {
