@@ -15,6 +15,7 @@ import TrustSection from "./components/TrustSection";
 import TransactionHistory from "./components/TransactionHistory";
 import Footer from "./components/Footer";
 import GiveawayLoader from "./components/GiveawayLoader";
+import GiveawayLeaderboard from "./components/GiveawayLeaderboard";
 import GiveawayDetails from "./pages/GiveawayDetails";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -210,6 +211,7 @@ function GiveawayHome() {
           </div>
         </section>
 
+        <GiveawayLeaderboard currentGiveaway={currentGiveaway} />
         <HowToParticipate />
 
         <WinnerSlider currentGiveaway={currentGiveaway} winners={currentWinners} />

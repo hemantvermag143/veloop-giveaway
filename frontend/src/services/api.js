@@ -42,6 +42,10 @@ export function getGiveaway(giveawayId) {
   return request(`/giveaways/${giveawayId}`);
 }
 
+export function getGiveawayLeaderboard(giveawayId) {
+  return request(`/giveaways/${giveawayId}/leaderboard`);
+}
+
 export function getPreviousGiveaways() {
   return request("/giveaways/previous");
 }

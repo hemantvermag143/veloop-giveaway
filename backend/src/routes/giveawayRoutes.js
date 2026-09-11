@@ -1,6 +1,8 @@
 const express = require("express");
 const Giveaway = require("../models/Giveaway");
 const GiveawayParticipation = require("../models/GiveawayParticipation");
+const GiveawayWinner = require("../models/GiveawayWinner");
+const Prize = require("../models/Prize");
 
 const router = express.Router();
 
@@ -70,6 +72,89 @@ router.get("/current", async (req, res, next) => {
   }
 });
 
+router.get("/:id/leaderboard", async (req, res, next) => {
+  try {
+    const giveaway = await Giveaway.findOne({
+      giveawayId: req.params.id,
+    }).lean();
+
+    if (!giveaway) {
+      return res.status(404).json({
+        success: false,
+        code: "GIVEAWAY_NOT_FOUND",
+        message: "Giveaway not found.",
+      });
+    }
+
+    const participants = await GiveawayParticipation.find({
+      giveawayId: giveaway.giveawayId,
+      status: "ACTIVE",
+    })
+      .sort({ joinedAt: 1 })
+      .lean();
+
+    const winners = await GiveawayWinner.find({
+      giveawayId: giveaway.giveawayId,
+      status: "SELECTED",
+    }).lean();
+
+    const winnerMap = new Map(
+      winners.map((winner) => [winner.userId, winner])
+    );
+
+    const prizeIds = [
+      ...new Set([
+        ...participants.map((item) => item.prizeId),
+        ...winners.map((item) => item.prizeId),
+      ]),
+    ];
+
+    const prizes = await Prize.find({
+      prizeId: { $in: prizeIds },
+    }).lean();
+
+    const prizeMap = new Map(
+      prizes.map((prize) => [prize.prizeId, prize])
+    );
+
+    const data = participants.map((participant, index) => {
+      const winner = winnerMap.get(participant.userId);
+      const prize = prizeMap.get(
+        winner?.prizeId || participant.prizeId
+      );
+
+      return {
+        position: index + 1,
+        userId: maskWinnerId(participant.userId),
+        entryAmount: participant.entryAmount,
+        entryCurrency: participant.entryCurrency,
+        joinedAt: participant.joinedAt,
+        prize: prize?.name || "Giveaway Reward",
+        winner: Boolean(winner),
+        winningDetails: winner
+          ? {
+              selectedAt: winner.selectedAt,
+              selectionMethod: winner.selectionMethod,
+              status: winner.status,
+            }
+          : null,
+      };
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        giveawayId: giveaway.giveawayId,
+        giveawayName: giveaway.title,
+        totalParticipants: data.length,
+        leaderboard: data,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get("/previous/winners", async (req, res, next) => {
   try {
     const giveaways = await Giveaway.find({
@@ -77,9 +162,6 @@ router.get("/previous/winners", async (req, res, next) => {
     })
       .sort({ endAt: -1 })
       .lean();
-
-    const GiveawayWinner = require("../models/GiveawayWinner");
-    const Prize = require("../models/Prize");
 
     const winnerRecords = await GiveawayWinner.find({
       giveawayId: { $in: giveaways.map((giveaway) => giveaway.giveawayId) },
