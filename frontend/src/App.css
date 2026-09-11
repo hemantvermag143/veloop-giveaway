@@ -3607,16 +3607,10 @@
 }
 
 .prize-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
-  overflow-x: auto;
-  overflow-y: visible;
   padding: 8px 6px 22px;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(105, 65, 198, 0.35) transparent;
-  -webkit-overflow-scrolling: touch;
 }
 
 .prize-grid::-webkit-scrollbar {
@@ -3707,15 +3701,9 @@
   box-shadow: 0 8px 20px rgba(16, 24, 40, 0.14);
 }
 
-@media (min-width: 1100px) {
-  .prize-card {
-    flex-basis: 360px;
-  }
-}
-
-@media (max-width: 1099px) {
-  .prize-card {
-    flex-basis: 330px;
+@media (max-width: 1099px) and (min-width: 651px) {
+  .prize-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -3729,14 +3717,26 @@
   }
 
   .prize-grid {
+    display: flex;
     gap: 14px;
+    overflow-x: auto;
+    overflow-y: visible;
     padding-left: 2px;
     padding-right: 2px;
     margin-right: -2px;
+    padding-bottom: 18px;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .prize-grid::-webkit-scrollbar {
+    display: none;
   }
 
   .prize-card {
-    flex-basis: min(310px, 84vw);
+    flex: 0 0 min(310px, 84vw);
     border-radius: 18px;
   }
 
