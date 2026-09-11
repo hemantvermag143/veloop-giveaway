@@ -36,7 +36,6 @@ function GiveawayDetails() {
   const [user, setUser] = useState(null);
   const [publicWinners, setPublicWinners] = useState([]);
   const [participationLoaded, setParticipationLoaded] = useState(false);
-  const [joinError, setJoinError] = useState("");
   const [joining, setJoining] = useState(false);
   const [winner, setWinner] = useState(null);
 

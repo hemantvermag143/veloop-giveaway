@@ -4,8 +4,6 @@ import {
   MoreVertical,
   Wallet,
   History,
-  LogIn,
-  UserPlus,
   LogOut,
   ShieldCheck,
   Coins,
