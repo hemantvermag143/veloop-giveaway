@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { Crown, Medal, Trophy, Clock3, Gift, Users, ChevronRight } from "lucide-react";
+import {
+  Crown,
+  Medal,
+  Trophy,
+  Clock3,
+  Gift,
+  Users,
+  ChevronRight,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 import { getGiveawayLeaderboard } from "../services/api";
 
 function formatDate(value) {
@@ -14,11 +24,16 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
+function getAvatarLabel(userId) {
+  if (!userId) return "VE";
+  return userId.slice(-2).toUpperCase();
+}
+
 function LeaderRank({ position }) {
   if (position === 1) {
     return (
       <div className="leaderboard-rank leaderboard-rank-gold">
-        <Crown size={18} strokeWidth={2.2} />
+        <Crown size={16} strokeWidth={2.3} />
         <span>1</span>
       </div>
     );
@@ -27,7 +42,7 @@ function LeaderRank({ position }) {
   if (position === 2) {
     return (
       <div className="leaderboard-rank leaderboard-rank-silver">
-        <Medal size={18} strokeWidth={2.2} />
+        <Medal size={16} strokeWidth={2.3} />
         <span>2</span>
       </div>
     );
@@ -36,7 +51,7 @@ function LeaderRank({ position }) {
   if (position === 3) {
     return (
       <div className="leaderboard-rank leaderboard-rank-bronze">
-        <Trophy size={18} strokeWidth={2.2} />
+        <Trophy size={16} strokeWidth={2.3} />
         <span>3</span>
       </div>
     );
@@ -49,11 +64,66 @@ function LeaderRank({ position }) {
   );
 }
 
+function PodiumCard({ entry, position }) {
+  if (!entry) {
+    return <div className="leaderboard-podium-slot empty" aria-hidden="true" />;
+  }
+
+  const isFirst = position === 1;
+
+  return (
+    <article
+      className={`leaderboard-podium-card leaderboard-podium-${position}`}
+    >
+      <div className="leaderboard-podium-crown">
+        {isFirst ? <Crown size={18} strokeWidth={2.2} /> : null}
+      </div>
+
+      <div className="leaderboard-podium-rank">
+        <LeaderRank position={position} />
+      </div>
+
+      <div className="leaderboard-podium-avatar">
+        <span>{getAvatarLabel(entry.userId)}</span>
+      </div>
+
+      <div className="leaderboard-podium-user">{entry.userId}</div>
+
+      <div className="leaderboard-podium-value">
+        <strong>{entry.entryAmount}</strong>
+        <span>{entry.entryCurrency}</span>
+      </div>
+
+      <div className="leaderboard-podium-prize">
+        {entry.prize || "Reward"}
+      </div>
+
+      <div
+        className={
+          entry.winner
+            ? "leaderboard-winner-badge"
+            : "leaderboard-position-copy"
+        }
+      >
+        {entry.winner ? <Trophy size={13} /> : null}
+        {entry.winner ? "Winner selected" : `Position #${position}`}
+      </div>
+
+      <div className="leaderboard-podium-footer">
+        <Clock3 size={12} />
+        <span>{formatDate(entry.joinedAt)}</span>
+      </div>
+    </article>
+  );
+}
+
 export default function GiveawayLeaderboard({ currentGiveaway }) {
   const [leaderboard, setLeaderboard] = useState([]);
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [period, setPeriod] = useState("all");
+  const [sort, setSort] = useState("entries");
 
   useEffect(() => {
     let mounted = true;
@@ -67,7 +137,7 @@ export default function GiveawayLeaderboard({ currentGiveaway }) {
     setLoading(true);
     setError("");
 
-    getGiveawayLeaderboard(currentGiveaway.giveawayId)
+    getGiveawayLeaderboard(currentGiveaway.giveawayId, { period, sort })
       .then((response) => {
         if (!mounted) return;
         setLeaderboard(response.data?.leaderboard || []);
@@ -88,11 +158,20 @@ export default function GiveawayLeaderboard({ currentGiveaway }) {
     return () => {
       mounted = false;
     };
-  }, [currentGiveaway?.giveawayId]);
+  }, [currentGiveaway?.giveawayId, period, sort]);
 
   const topThree = useMemo(
     () => leaderboard.filter((entry) => entry.position <= 3),
     [leaderboard]
+  );
+
+  const topThreeMap = useMemo(
+    () =>
+      topThree.reduce((accumulator, entry) => {
+        accumulator[entry.position] = entry;
+        return accumulator;
+      }, {}),
+    [topThree]
   );
 
   if (!currentGiveaway) {
@@ -102,20 +181,74 @@ export default function GiveawayLeaderboard({ currentGiveaway }) {
   return (
     <section className="leaderboard-section" id="leaderboard">
       <div className="leaderboard-shell">
-        <div className="leaderboard-heading">
-          <div className="leaderboard-heading-copy">
-            <span className="section-eyebrow">GIVEAWAY LEADERBOARD</span>
-            <h2>See who&apos;s leading the reward race</h2>
-            <p>
-              Track recorded participation positions in{" "}
-              <strong>{meta?.giveawayName || currentGiveaway.name}</strong>.
-              Winner selection is announced after the giveaway ends.
-            </p>
+        <div className="leaderboard-topline">
+          <div className="leaderboard-title-wrap">
+            <div className="leaderboard-title-icon">
+              <Trophy size={24} strokeWidth={1.8} />
+            </div>
+
+            <div>
+              <span className="section-eyebrow">GIVEAWAY LEADERBOARD</span>
+              <h2>🏆 Compete. Earn. Rise to the top.</h2>
+              <p>
+                Live participation rankings for{" "}
+                <strong>
+                  {meta?.giveawayName || currentGiveaway.name}
+                </strong>
+                .
+              </p>
+            </div>
           </div>
 
           <div className="leaderboard-live-pill">
             <span className="leaderboard-live-dot" />
-            Live rankings
+            🔥 Live rankings
+          </div>
+        </div>
+
+        <div className="leaderboard-controls" aria-label="Leaderboard view">
+          <div className="leaderboard-filter-group">
+            {["Daily", "Weekly", "Monthly", "All Time"].map((label) => {
+              const value =
+                label === "All Time" ? "all" : label.toLowerCase();
+
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  className={`leaderboard-filter-button ${
+                    period === value ? "active" : ""
+                  }`}
+                  onClick={() => setPeriod(value)}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="leaderboard-filter-group leaderboard-mode-group">
+            <button
+              type="button"
+              className={`leaderboard-filter-button ${
+                sort === "entries" ? "active" : ""
+              }`}
+              onClick={() => setSort("entries")}
+            >
+              <TrendingUp size={14} />
+              Top Entries
+            </button>
+
+            <button
+              type="button"
+              className={`leaderboard-filter-button ${
+                sort === "participants" ? "active" : ""
+              }`}
+              onClick={() => setSort("participants")}
+            >
+              <Users size={14} />
+              Top Participants
+            </button>
           </div>
         </div>
 
@@ -149,7 +282,9 @@ export default function GiveawayLeaderboard({ currentGiveaway }) {
                 <Users size={18} />
                 <div>
                   <span>Total participants</span>
-                  <strong>{meta?.totalParticipants ?? leaderboard.length}</strong>
+                  <strong>
+                    {meta?.totalParticipants ?? leaderboard.length}
+                  </strong>
                 </div>
               </div>
 
@@ -157,7 +292,11 @@ export default function GiveawayLeaderboard({ currentGiveaway }) {
                 <Gift size={18} />
                 <div>
                   <span>Reward</span>
-                  <strong>{currentGiveaway.prizes?.[0]?.name || leaderboard[0]?.prize || "Reward"}</strong>
+                  <strong>
+                    {currentGiveaway.prizes?.[0]?.name ||
+                      leaderboard[0]?.prize ||
+                      "Reward"}
+                  </strong>
                 </div>
               </div>
 
@@ -174,51 +313,30 @@ export default function GiveawayLeaderboard({ currentGiveaway }) {
               </div>
             </div>
 
-            {topThree.length > 0 && (
-              <div className="leaderboard-podium">
-                {[2, 1, 3].map((rank) => {
-                  const entry = topThree.find((item) => item.position === rank);
-                  if (!entry) return <div key={rank} className="leaderboard-podium-slot empty" />;
-
-                  return (
-                    <div
-                      className={`leaderboard-podium-card leaderboard-podium-${rank}`}
-                      key={entry.userId}
-                    >
-                      <div className="leaderboard-podium-rank">
-                        <LeaderRank position={entry.position} />
-                      </div>
-
-                      <div className="leaderboard-podium-avatar">
-                        {entry.userId?.slice(-2) || "VE"}
-                      </div>
-
-                      <strong>{entry.userId}</strong>
-                      <span>{entry.prize}</span>
-
-                      {entry.winner ? (
-                        <div className="leaderboard-winner-badge">
-                          <Trophy size={14} />
-                          Winner
-                        </div>
-                      ) : (
-                        <div className="leaderboard-position-copy">
-                          Position #{entry.position}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+            <div className="leaderboard-podium-header">
+              <div>
+                <span className="section-eyebrow">✨ TOP PARTICIPANTS</span>
+                <h3>Rise to the top</h3>
               </div>
-            )}
+              <div className="leaderboard-podium-note">
+                <Sparkles size={14} />
+                <span>Ranked by recorded entry</span>
+              </div>
+            </div>
+
+            <div className="leaderboard-podium">
+              <PodiumCard entry={topThreeMap[2]} position={2} />
+              <PodiumCard entry={topThreeMap[1]} position={1} />
+              <PodiumCard entry={topThreeMap[3]} position={3} />
+            </div>
 
             <div className="leaderboard-table-wrap">
               <div className="leaderboard-table-header">
-                <span>Position</span>
+                <span>Rank</span>
                 <span>Participant</span>
                 <span>Entry</span>
                 <span>Reward</span>
-                <span>Winning details</span>
+                <span>Status</span>
               </div>
 
               <div className="leaderboard-table-body">
@@ -235,7 +353,7 @@ export default function GiveawayLeaderboard({ currentGiveaway }) {
 
                     <div className="leaderboard-user">
                       <div className="leaderboard-user-avatar">
-                        {entry.userId?.slice(-2) || "VE"}
+                        {getAvatarLabel(entry.userId)}
                       </div>
 
                       <div>
@@ -250,7 +368,7 @@ export default function GiveawayLeaderboard({ currentGiveaway }) {
                     </div>
 
                     <div className="leaderboard-reward">
-                      <Gift size={17} />
+                      <Gift size={16} />
                       <span>{entry.prize || "Reward"}</span>
                     </div>
 
@@ -274,7 +392,7 @@ export default function GiveawayLeaderboard({ currentGiveaway }) {
                         </span>
                       )}
 
-                      <ChevronRight size={16} />
+                      <ChevronRight size={15} />
                     </div>
                   </article>
                 ))}

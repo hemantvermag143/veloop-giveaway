@@ -74,6 +74,20 @@ router.get("/current", async (req, res, next) => {
 
 router.get("/:id/leaderboard", async (req, res, next) => {
   try {
+    const period = String(req.query.period || "all").toLowerCase();
+    const sort = String(req.query.sort || "entries").toLowerCase();
+
+    const allowedPeriods = new Set(["daily", "weekly", "monthly", "all"]);
+    const allowedSorts = new Set(["entries", "participants"]);
+
+    if (!allowedPeriods.has(period) || !allowedSorts.has(sort)) {
+      return res.status(400).json({
+        success: false,
+        code: "INVALID_LEADERBOARD_FILTER",
+        message: "Invalid leaderboard filter.",
+      });
+    }
+
     const giveaway = await Giveaway.findOne({
       giveawayId: req.params.id,
     }).lean();
@@ -86,11 +100,23 @@ router.get("/:id/leaderboard", async (req, res, next) => {
       });
     }
 
-    const participants = await GiveawayParticipation.find({
+    const participantQuery = {
       giveawayId: giveaway.giveawayId,
       status: "ACTIVE",
-    })
-      .sort({ joinedAt: 1 })
+    };
+
+    if (period !== "all") {
+      const days = period === "daily" ? 1 : period === "weekly" ? 7 : 30;
+      const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      participantQuery.joinedAt = { $gte: since };
+    }
+
+    const participants = await GiveawayParticipation.find(participantQuery)
+      .sort(
+        sort === "participants"
+          ? { joinedAt: -1, entryAmount: -1 }
+          : { entryAmount: -1, joinedAt: 1 }
+      )
       .lean();
 
     const winners = await GiveawayWinner.find({

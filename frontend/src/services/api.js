@@ -42,8 +42,18 @@ export function getGiveaway(giveawayId) {
   return request(`/giveaways/${giveawayId}`);
 }
 
-export function getGiveawayLeaderboard(giveawayId) {
-  return request(`/giveaways/${giveawayId}/leaderboard`);
+export function getGiveawayLeaderboard(
+  giveawayId,
+  { period = "all", sort = "entries" } = {}
+) {
+  const params = new URLSearchParams({
+    period,
+    sort,
+  });
+
+  return request(
+    `/giveaways/${giveawayId}/leaderboard?${params.toString()}`
+  );
 }
 
 export function getPreviousGiveaways() {
