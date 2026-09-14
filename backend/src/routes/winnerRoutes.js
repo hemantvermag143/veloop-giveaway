@@ -12,6 +12,21 @@ function maskWinnerId(userId = "") {
   return `${userId.slice(0, 2)}****${userId.slice(-2)}`;
 }
 
+function getPrizeImage(prize = {}) {
+  if (prize?.image) return prize.image;
+
+  const fallbackImages = {
+    "PRIZE-IP15": "/prizes/iphone-15-pro.png",
+    "PRIZE-WATCH": "/prizes/apple-watch.png",
+    "PRIZE-AIRPODS": "/prizes/airpods-pro.png",
+    "PRIZE-AMZ2000": "/prizes/amazon-2000.png",
+    "PRIZE-AMZ500": "/prizes/amazon-500.png",
+    "PRIZE-AMZ20": "/prizes/amazon-20.png",
+  };
+
+  return fallbackImages[prize?.prizeId] || "";
+}
+
 router.get("/previous/winners", async (req, res, next) => {
   try {
     const giveaways = await Giveaway.find({
@@ -59,7 +74,7 @@ router.get("/previous/winners", async (req, res, next) => {
         giveawayName: giveaway?.title || "VELOOP Giveaway",
         prizeId: winner.prizeId,
         prize: prize?.name || "Prize",
-        prizeImage: prize?.image || "",
+        prizeImage: getPrizeImage(prize),
         prizeType: prize?.type || "",
         claimType: prize?.claimType || "",
         userId: maskWinnerId(winner.userId),
@@ -119,7 +134,7 @@ router.get("/:id/winners", async (req, res, next) => {
         giveawayId: winner.giveawayId,
         prizeId: winner.prizeId,
         prize: prize?.name || "Prize",
-        prizeImage: prize?.image || "",
+        prizeImage: getPrizeImage(prize),
         prizeType: prize?.type || "",
         claimType: prize?.claimType || "",
         userId: maskWinnerId(winner.userId),
