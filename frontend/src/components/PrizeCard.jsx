@@ -3,6 +3,31 @@ import { ArrowRight, Clock3, Users } from "lucide-react";
 function PrizeCard({ giveaway, position }) {
   const prize = giveaway.prizes?.[0];
 
+  function handlePointerMove(event) {
+    const card = event.currentTarget;
+    const rect = card.getBoundingClientRect();
+
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const rotateY = ((x / rect.width) - 0.5) * 7;
+    const rotateX = ((y / rect.height) - 0.5) * -7;
+
+    card.style.setProperty("--card-rotate-x", `${rotateX}deg`);
+    card.style.setProperty("--card-rotate-y", `${rotateY}deg`);
+    card.style.setProperty("--card-glow-x", `${x}px`);
+    card.style.setProperty("--card-glow-y", `${y}px`);
+  }
+
+  function handlePointerLeave(event) {
+    const card = event.currentTarget;
+
+    card.style.setProperty("--card-rotate-x", "0deg");
+    card.style.setProperty("--card-rotate-y", "0deg");
+    card.style.setProperty("--card-glow-x", "50%");
+    card.style.setProperty("--card-glow-y", "50%");
+  }
+
   const badge =
     giveaway.status === "ACTIVE"
       ? "LIVE"
@@ -20,7 +45,11 @@ function PrizeCard({ giveaway, position }) {
   }`;
 
   return (
-    <article className="prize-card">
+    <article
+      className="prize-card"
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+    >
       <div className="prize-card-visual">
         <span className="prize-position">{position}</span>
 

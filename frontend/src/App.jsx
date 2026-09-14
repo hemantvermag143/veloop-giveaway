@@ -16,6 +16,7 @@ import TransactionHistory from "./components/TransactionHistory";
 import Footer from "./components/Footer";
 import GiveawayLoader from "./components/GiveawayLoader";
 import GiveawayLeaderboard from "./components/GiveawayLeaderboard";
+import LiveVFX from "./components/LiveVFX";
 import GiveawayDetails from "./pages/GiveawayDetails";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -118,6 +119,7 @@ function GiveawayHome() {
 
   return (
     <div className="app">
+      <LiveVFX />
       <Navbar />
       <main className="page-content">
         {apiLoading && <GiveawayLoader message="Checking active giveaways..." />}

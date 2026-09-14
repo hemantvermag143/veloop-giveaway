@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Sparkles,
   Gift,
+  Clock3,
 } from "lucide-react";
 
 function maskWinnerId(userId = "") {
@@ -22,106 +23,159 @@ function formatDate(value) {
 
   return new Intl.DateTimeFormat("en-IN", {
     day: "2-digit",
-    month: "short",
+    month: "2-digit",
     year: "numeric",
   }).format(new Date(value));
 }
 
-function getCategory(prize = "") {
+function getCategory(prize = "", prizeType = "") {
   const value = prize.toLowerCase();
 
-  if (value.includes("iphone") || value.includes("phone")) return "Phones";
-  if (value.includes("watch")) return "Watches";
-  if (value.includes("airpods") || value.includes("earbuds")) return "Audio";
-  if (value.includes("amazon") || value.includes("gift")) return "Gift Cards";
-  if (value.includes("token")) return "Tokens";
+  if (value.includes("iphone") || value.includes("phone")) {
+    return "Gadgets & Electronics";
+  }
 
-  return "Other";
+  if (
+    value.includes("watch") ||
+    value.includes("airpods") ||
+    value.includes("earbuds") ||
+    prizeType === "PHYSICAL"
+  ) {
+    return "Gadgets & Electronics";
+  }
+
+  if (
+    value.includes("amazon") ||
+    value.includes("gift") ||
+    prizeType === "GIFT_CARD"
+  ) {
+    return "Gift Cards & Vouchers";
+  }
+
+  return "Other Rewards";
+}
+
+function getPrizeValue(prize = "") {
+  const match = prize.match(/₹[\d,]+/);
+  return match ? match[0] : "Exclusive";
+}
+
+function getTypeLabel(prizeType = "") {
+  if (prizeType === "GIFT_CARD") return "🎟 GIFT_CARD";
+  if (prizeType === "PHYSICAL") return "◉ PHYSICAL";
+  return "✦ DIGITAL";
 }
 
 function WinnerCard({ winner, activeTab }) {
   const maskedId = maskWinnerId(winner.userId);
-  const category = getCategory(winner.prize);
+  const category = getCategory(winner.prize, winner.prizeType);
+  const prizeValue = getPrizeValue(winner.prize);
 
   return (
-    <article className="winner-directory-card">
-      <div className="winner-directory-top">
-        <div className="winner-directory-trophy">
-          <Trophy size={20} />
-        </div>
+    <article className="winner-reference-card">
+      <div className="winner-reference-card-head">
+        <span
+          className={`winner-reference-type ${
+            winner.prizeType === "GIFT_CARD" ? "gift" : "physical"
+          }`}
+        >
+          {getTypeLabel(winner.prizeType)}
+        </span>
 
-        <span className="winner-directory-rank">
-          {activeTab === "winners" ? "WINNER" : "PREVIOUS"}
+        <span className="winner-reference-audit">
+          <CheckCircle2 size={12} />
+          Audit Verified
         </span>
       </div>
 
-      <div className="winner-directory-avatar">
-        <span>{maskedId.slice(-2)}</span>
+      <div className="winner-reference-image-wrap">
+        <span className="winner-reference-spark spark-one">✦</span>
+        <span className="winner-reference-spark spark-two">✧</span>
+
+        {winner.prizeImage ? (
+          <img
+            src={winner.prizeImage}
+            alt={winner.prize || "Giveaway prize"}
+            className="winner-reference-image"
+            loading="lazy"
+          />
+        ) : (
+          <div className="winner-reference-image-fallback">
+            <Gift size={40} />
+          </div>
+        )}
       </div>
 
-      <strong className="winner-directory-name">{maskedId}</strong>
-
-      <div className="winner-directory-prize">
-        <Gift size={15} />
-        <span>{winner.prize || "Giveaway Reward"}</span>
+      <div className="winner-reference-prize-copy">
+        <h3>{winner.prize || "Giveaway Reward"}</h3>
+        <p>
+          Prize Value: <strong>{prizeValue}</strong>
+        </p>
       </div>
 
-      <div className="winner-directory-meta">
+      <div className="winner-reference-user">
+        <div className="winner-reference-user-avatar">
+          {maskedId.slice(-2)}
+        </div>
+
+        <div className="winner-reference-user-main">
+          <strong>{maskedId}</strong>
+          <span>VEL • {maskedId.slice(-4)}</span>
+        </div>
+      </div>
+
+      <div className="winner-reference-footer">
+        <span>
+          <Clock3 size={11} />
+          {formatDate(winner.selectedAt)}
+        </span>
+
+        <span className="winner-reference-claimed">
+          Claimed
+        </span>
+      </div>
+
+      <div className="winner-reference-meta">
         <span>{category}</span>
-        <span>{formatDate(winner.selectedAt)}</span>
-      </div>
-
-      <div className="winner-directory-verified">
-        <CheckCircle2 size={14} />
-        <span>Verified winner</span>
-      </div>
-
-      <div className="winner-directory-selection">
-        <span>Selection</span>
-        <strong>{winner.selectionMethod || "Verified draw"}</strong>
+        <span>
+          {activeTab === "winners" ? "Current Winner" : "Previous Winner"}
+        </span>
       </div>
     </article>
   );
 }
 
-function WinnerRow({ winner, activeTab, index }) {
+function WinnerRow({ winner, index }) {
   const maskedId = maskWinnerId(winner.userId);
-  const category = getCategory(winner.prize);
+  const category = getCategory(winner.prize, winner.prizeType);
 
   return (
-    <article className="winner-directory-row">
-      <div className="winner-directory-table-rank">
-        #{index + 1}
-      </div>
+    <article className="winner-reference-row">
+      <div className="winner-reference-row-rank">#{index + 1}</div>
 
-      <div className="winner-directory-table-user">
-        <div className="winner-directory-table-avatar">
+      <div className="winner-reference-row-user">
+        <div className="winner-reference-row-avatar">
           {maskedId.slice(-2)}
         </div>
 
         <div>
           <strong>{maskedId}</strong>
-          <span>{activeTab === "winners" ? "Current winner" : "Past winner"}</span>
+          <span>{winner.prizeType || "REWARD"}</span>
         </div>
       </div>
 
-      <div className="winner-directory-table-prize">
-        <Gift size={15} />
+      <div className="winner-reference-row-prize">
+        <Gift size={14} />
         <span>{winner.prize || "Giveaway Reward"}</span>
       </div>
 
-      <div className="winner-directory-table-category">
-        {category}
-      </div>
+      <span>{category}</span>
+      <span>{formatDate(winner.selectedAt)}</span>
 
-      <div className="winner-directory-table-date">
-        {formatDate(winner.selectedAt)}
-      </div>
-
-      <div className="winner-directory-table-status">
-        <CheckCircle2 size={14} />
-        Verified
-      </div>
+      <span className="winner-reference-row-status">
+        <CheckCircle2 size={13} />
+        Claimed
+      </span>
     </article>
   );
 }
@@ -139,13 +193,11 @@ function WinnersTabs({
   const items =
     activeTab === "winners" ? currentWinners : previousWinners;
 
-  const categories = useMemo(() => {
-    const values = new Set(
-      items.map((winner) => getCategory(winner.prize))
-    );
-
-    return ["All Winners", ...Array.from(values)];
-  }, [items]);
+  const categories = [
+    "All Winners",
+    "Gadgets & Electronics",
+    "Gift Cards & Vouchers",
+  ];
 
   const filteredItems = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -153,12 +205,13 @@ function WinnersTabs({
     return items.filter((winner) => {
       const winnerId = maskWinnerId(winner.userId).toLowerCase();
       const prize = (winner.prize || "").toLowerCase();
+      const winnerCategory = getCategory(winner.prize, winner.prizeType);
+
       const matchesSearch =
         !query || winnerId.includes(query) || prize.includes(query);
 
       const matchesCategory =
-        category === "All Winners" ||
-        getCategory(winner.prize) === category;
+        category === "All Winners" || winnerCategory === category;
 
       return matchesSearch && matchesCategory;
     });
@@ -168,14 +221,18 @@ function WinnersTabs({
 
   return (
     <section className="winners-section" id="winners">
-      <div className="winner-directory-shell">
-        <div className="winner-directory-heading">
+      <div className="winner-directory-shell winner-reference-shell">
+        <div className="winner-reference-heading">
           <div>
-            <span className="section-eyebrow">🏆 WINNER DIRECTORY</span>
-            <h2>All Verified Winners</h2>
+            <span className="section-eyebrow">
+              🏆 WINNER DIRECTORY
+            </span>
+
+            <h2>All Verified Winners Directory ({previousWinners.length + currentWinners.length})</h2>
+
             <p>
-              Explore current and previous giveaway winners with privacy-safe
-              winner IDs.
+              Browse through all verified rewards recipients and audited
+              winning tickets.
             </p>
           </div>
 
@@ -185,44 +242,69 @@ function WinnersTabs({
           </div>
         </div>
 
-        <div className="winner-directory-tabs" role="tablist">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "winners"}
-            className={activeTab === "winners" ? "active" : ""}
-            onClick={() => {
-              setActiveTab("winners");
-              setCategory("All Winners");
-            }}
-          >
-            <Trophy size={16} />
-            Winners
-          </button>
+        <div className="winner-reference-controls">
+          <div className="winner-directory-tabs" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "winners"}
+              className={activeTab === "winners" ? "active" : ""}
+              onClick={() => {
+                setActiveTab("winners");
+                setCategory("All Winners");
+              }}
+            >
+              <Trophy size={16} />
+              Winners
+            </button>
 
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "previous"}
-            className={activeTab === "previous" ? "active" : ""}
-            onClick={() => {
-              setActiveTab("previous");
-              setCategory("All Winners");
-            }}
-          >
-            <CalendarDays size={16} />
-            Previous Winners
-          </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "previous"}
+              className={activeTab === "previous" ? "active" : ""}
+              onClick={() => {
+                setActiveTab("previous");
+                setCategory("All Winners");
+              }}
+            >
+              <CalendarDays size={16} />
+              Previous Winners
+            </button>
+          </div>
+
+          <div className="winner-reference-view-toggle">
+            <button
+              type="button"
+              className={view === "cards" ? "active" : ""}
+              onClick={() => setView("cards")}
+              aria-label="Cards view"
+            >
+              <Grid2X2 size={15} />
+              <span>Cards</span>
+            </button>
+
+            <button
+              type="button"
+              className={view === "table" ? "active" : ""}
+              onClick={() => setView("table")}
+              aria-label="Table view"
+            >
+              <List size={15} />
+              <span>Table</span>
+            </button>
+          </div>
         </div>
 
-        <div className="winner-directory-toolbar">
+        <div className="winner-reference-toolbar">
           <div className="winner-directory-search">
             <Search size={17} />
+
             <input
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search winner ID or prize..."
+              placeholder="Search for winner / prize ticket..."
               aria-label="Search winners"
             />
           </div>
@@ -235,35 +317,20 @@ function WinnersTabs({
                 className={category === item ? "active" : ""}
                 onClick={() => setCategory(item)}
               >
-                {item}
+                {item === "Gadgets & Electronics"
+                  ? "📱 Gadgets & Electronics"
+                  : item === "Gift Cards & Vouchers"
+                    ? "🎁 Gift Cards & Vouchers"
+                    : "✨ All Winners"}
               </button>
             ))}
-          </div>
-
-          <div className="winner-directory-view-toggle">
-            <button
-              type="button"
-              className={view === "cards" ? "active" : ""}
-              aria-label="Card view"
-              onClick={() => setView("cards")}
-            >
-              <Grid2X2 size={16} />
-            </button>
-
-            <button
-              type="button"
-              className={view === "table" ? "active" : ""}
-              aria-label="Table view"
-              onClick={() => setView("table")}
-            >
-              <List size={17} />
-            </button>
           </div>
         </div>
 
         {filteredItems.length === 0 ? (
           <div className="winner-empty winner-directory-empty">
             <Sparkles size={24} />
+
             <strong>
               {activeTab === "winners"
                 ? isCurrentEnded
@@ -271,6 +338,7 @@ function WinnersTabs({
                   : "No winners announced yet."
                 : "No previous winners available."}
             </strong>
+
             <span>
               {search || category !== "All Winners"
                 ? "Try another search or category."
@@ -280,7 +348,7 @@ function WinnersTabs({
             </span>
           </div>
         ) : view === "cards" ? (
-          <div className="winner-directory-grid">
+          <div className="winner-reference-grid">
             {filteredItems.map((winner, index) => (
               <WinnerCard
                 key={`${winner.giveawayId}-${winner.userId}-${index}`}
@@ -290,8 +358,8 @@ function WinnersTabs({
             ))}
           </div>
         ) : (
-          <div className="winner-directory-table">
-            <div className="winner-directory-table-header">
+          <div className="winner-reference-table">
+            <div className="winner-reference-table-header">
               <span>Rank</span>
               <span>Winner</span>
               <span>Prize</span>
@@ -304,7 +372,6 @@ function WinnersTabs({
               <WinnerRow
                 key={`${winner.giveawayId}-${winner.userId}-${index}`}
                 winner={winner}
-                activeTab={activeTab}
                 index={index}
               />
             ))}

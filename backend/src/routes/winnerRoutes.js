@@ -59,6 +59,9 @@ router.get("/previous/winners", async (req, res, next) => {
         giveawayName: giveaway?.title || "VELOOP Giveaway",
         prizeId: winner.prizeId,
         prize: prize?.name || "Prize",
+        prizeImage: prize?.image || "",
+        prizeType: prize?.type || "",
+        claimType: prize?.claimType || "",
         userId: maskWinnerId(winner.userId),
         selectedAt: winner.selectedAt,
         status: winner.status,
@@ -101,14 +104,30 @@ router.get("/:id/winners", async (req, res, next) => {
       .sort({ selectedAt: 1 })
       .lean();
 
-    const safeWinners = winners.map((winner) => ({
-      giveawayId: winner.giveawayId,
-      prizeId: winner.prizeId,
-      userId: maskWinnerId(winner.userId),
-      selectionMethod: winner.selectionMethod,
-      selectedAt: winner.selectedAt,
-      status: winner.status,
-    }));
+    const prizes = await Prize.find({
+      prizeId: { $in: winners.map((winner) => winner.prizeId) },
+    }).lean();
+
+    const prizeMap = new Map(
+      prizes.map((prize) => [prize.prizeId, prize])
+    );
+
+    const safeWinners = winners.map((winner) => {
+      const prize = prizeMap.get(winner.prizeId);
+
+      return {
+        giveawayId: winner.giveawayId,
+        prizeId: winner.prizeId,
+        prize: prize?.name || "Prize",
+        prizeImage: prize?.image || "",
+        prizeType: prize?.type || "",
+        claimType: prize?.claimType || "",
+        userId: maskWinnerId(winner.userId),
+        selectionMethod: winner.selectionMethod,
+        selectedAt: winner.selectedAt,
+        status: winner.status,
+      };
+    });
 
     return res.json({
       success: true,
