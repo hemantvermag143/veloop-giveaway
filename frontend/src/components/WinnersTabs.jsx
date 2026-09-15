@@ -107,7 +107,7 @@ function WinnerCard({ winner, activeTab }) {
         <span className="winner-reference-spark spark-one">✦</span>
         <span className="winner-reference-spark spark-two">✧</span>
 
-        {winner.prizeImage ? (
+        {getWinnerPrizeImage(winner) ? (
           <img
             src={getWinnerPrizeImage(winner)}
             alt={winner.prize || "Giveaway prize"}
