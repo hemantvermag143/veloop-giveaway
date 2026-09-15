@@ -18,6 +18,21 @@ function maskWinnerId(userId = "") {
   return `${userId.slice(0, 2)}****${userId.slice(-2)}`;
 }
 
+function getWinnerPrizeImage(winner = {}) {
+  if (winner?.prizeImage) return winner.prizeImage;
+
+  const fallbackImages = {
+    "PRIZE-IP15": "/prizes/iphone-15-pro.png",
+    "PRIZE-WATCH": "/prizes/apple-watch.png",
+    "PRIZE-AIRPODS": "/prizes/airpods-pro.png",
+    "PRIZE-AMZ2000": "/prizes/amazon-2000.png",
+    "PRIZE-AMZ500": "/prizes/amazon-500.png",
+    "PRIZE-AMZ20": "/prizes/amazon-20.png",
+  };
+
+  return fallbackImages[winner?.prizeId] || "";
+}
+
 function formatDate(value) {
   if (!value) return "—";
 
@@ -94,7 +109,7 @@ function WinnerCard({ winner, activeTab }) {
 
         {winner.prizeImage ? (
           <img
-            src={winner.prizeImage}
+            src={getWinnerPrizeImage(winner)}
             alt={winner.prize || "Giveaway prize"}
             className="winner-reference-image"
             loading="lazy"
